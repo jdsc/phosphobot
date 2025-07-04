@@ -216,6 +216,10 @@ async def inference(request: InferenceRequest) -> str | None:
         target_size: tuple[int, int]
 
         # Get feature names
+        # print("Input features:", input_features) #
+#Input features: {'observation.state': {'type': 'STATE', 'shape': [6]}, 'observation.images.main': {'type': 'VISUAL', 'shape': [3, 240, 320]}, 'observation.images.secondary_0': {'type': 'VISUAL', 'shape': [3, 240, 320]}}
+        # print(payload["observation.images.1"][0]) #カメラに手をかざすと値がかわる
+
         image_names = [
             feature
             for feature in input_features.keys()

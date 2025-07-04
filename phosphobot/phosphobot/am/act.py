@@ -183,6 +183,7 @@ class ACT(ActionModel):
         )
 
     def sample_actions(self, inputs: dict) -> np.ndarray:
+
         # Double-encoded version (to send numpy arrays as JSON)
         encoded_payload = {"encoded": json_numpy.dumps(inputs)}
 

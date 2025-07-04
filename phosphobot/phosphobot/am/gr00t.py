@@ -940,7 +940,7 @@ async def run_gr00t_training(
             "--num-epochs",
             str(epochs),
             "--save-steps",
-            "10000",
+            "20000",
             "--num-arms",
             str(number_of_robots),
             "--num-cams",
@@ -1156,6 +1156,7 @@ class Gr00tTrainer(BaseTrainer):
                 validation_data_dir=val_data_dir,
                 timeout_seconds=timeout_seconds,
                 gr00t_repo_path=self.config.training_params.path_to_gr00t_repo,
+                model_id=self.config.model_name,
             )
         )
         logger.info("Training finished")
