@@ -1156,7 +1156,6 @@ class Gr00tTrainer(BaseTrainer):
                 validation_data_dir=val_data_dir,
                 timeout_seconds=timeout_seconds,
                 gr00t_repo_path=self.config.training_params.path_to_gr00t_repo,
-                model_id=self.config.model_name,
             )
         )
         logger.info("Training finished")
