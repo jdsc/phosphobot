@@ -1,7 +1,6 @@
 import { HuggingFaceKeyInput } from "@/components/common/huggingface-key";
 import { LoadingPage } from "@/components/common/loading";
 import { WandBKeyInput } from "@/components/common/wandb-key";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,26 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { fetcher } from "@/lib/utils";
+import { fetchWithBaseUrl, fetcher } from "@/lib/utils";
 import { AdminSettings, AdminTokenSettings } from "@/types";
-import {
-  AlertCircle,
-  Camera,
-  CheckCircle2,
-  CircleCheck,
-  Database,
-  Key,
-  Play,
-} from "lucide-react";
+import { Camera, CircleCheck, Database, Key, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 
 export default function AdminPage() {
-  const [formSubmitted, setFormSubmitted] = useState({
-    huggingFace: false,
-    userSettings: false,
-  });
-  const [userError, setUserError] = useState("");
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
@@ -68,33 +54,6 @@ export default function AdminPage() {
   const validateVideoSize = (w: number, h: number) =>
     w > 0 && h > 0 ? "" : "Video dimensions must be positive numbers";
 
-  // Save settings to server
-  const saveSettings = async (settings: AdminSettings) => {
-    try {
-      const resp = await fetch("/admin/form/usersettings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
-      });
-
-      if (!resp.ok) {
-        const err = await resp.json();
-        throw new Error(err.message || "Error saving settings.");
-      }
-
-      setFormSubmitted((prev) => ({ ...prev, userSettings: true }));
-      setUserError("");
-      setTimeout(
-        () => setFormSubmitted((prev) => ({ ...prev, userSettings: false })),
-        3000,
-      );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      console.error(err);
-      setUserError(err.message || "An error occurred while saving settings.");
-    }
-  };
-
   // Auto-save on changes
   useEffect(() => {
     if (!adminSettings) return;
@@ -102,7 +61,7 @@ export default function AdminPage() {
     if (isInitialMount.current) {
       isInitialMount.current = false;
     } else if (!Object.values(validationErrors).some((e) => e)) {
-      saveSettings(adminSettings);
+      fetchWithBaseUrl("/admin/form/usersettings", "POST", adminSettings);
     }
   }, [adminSettings, validationErrors]);
 
@@ -306,25 +265,6 @@ export default function AdminPage() {
           </CardContent>
         </Card>
       </div>
-
-      {userError && (
-        <Alert variant="destructive" className="mt-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{userError}</AlertDescription>
-        </Alert>
-      )}
-
-      {formSubmitted.userSettings && (
-        <Alert
-          variant="default"
-          className="mt-6 bg-emerald-50 text-emerald-800 border-emerald-200"
-        >
-          <CheckCircle2 className="h-4 w-4" />
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>Your settings have been saved.</AlertDescription>
-        </Alert>
-      )}
     </div>
   );
 }

@@ -3,7 +3,6 @@ import time
 from typing import Literal, Optional
 
 import numpy as np
-import pybullet as p  # type: ignore
 from loguru import logger
 from serial.tools.list_ports_common import ListPortInfo
 
@@ -11,7 +10,7 @@ from phosphobot.configs import SimulationMode, config
 from phosphobot.control_signal import ControlSignal
 from phosphobot.hardware.base import BaseManipulator
 from phosphobot.hardware.motors.feetech import FeetechMotorsBus  # type: ignore
-from phosphobot.utils import get_resources_path, step_simulation
+from phosphobot.utils import get_resources_path
 
 
 class SO100Hardware(BaseManipulator):
@@ -469,10 +468,6 @@ class SO100Hardware(BaseManipulator):
         Background task that implements gravity compensation control:
         - Applies gravity compensation to the robot
         """
-        # Connect to PyBullet for gravity compensation calculations
-        p.connect(p.DIRECT)
-        p.setGravity(0, 0, -9.81)
-
         # Set up PID gains for leader's gravity compensation
         current_voltage = self.current_voltage()
         if current_voltage is None:
@@ -523,14 +518,14 @@ class SO100Hardware(BaseManipulator):
 
             # Update PyBullet simulation for gravity calculation
             for i, idx in enumerate(joint_indices):
-                p.resetJointState(self.p_robot_id, idx, pos_rad[i])
-            step_simulation()
+                self.sim.set_joint_state(self.p_robot_id, idx, pos_rad[i])
+            self.sim.step()
 
             # Calculate gravity compensation torque
             positions = list(pos_rad)
             velocities = [0.0] * num_joints
             accelerations = [0.0] * num_joints
-            tau_g = p.calculateInverseDynamics(
+            tau_g = self.sim.inverse_dynamics(
                 self.p_robot_id,
                 positions,
                 velocities,

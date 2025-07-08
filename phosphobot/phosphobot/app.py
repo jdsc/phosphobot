@@ -14,7 +14,7 @@ from loguru import logger
 from rich import print
 
 from phosphobot import __version__
-from phosphobot.camera import AllCameras, get_all_cameras
+from phosphobot.camera import AllCameras, get_all_cameras_no_init, get_all_cameras
 from phosphobot.configs import config
 from phosphobot.endpoints import (
     auth_router,
@@ -26,7 +26,7 @@ from phosphobot.endpoints import (
     training_router,
     update_router,
 )
-from phosphobot.hardware import simulation_init, simulation_stop
+from phosphobot.hardware import get_sim
 from phosphobot.models import ServerStatus
 from phosphobot.posthog import posthog, posthog_pageview
 from phosphobot.recorder import Recorder, get_recorder
@@ -66,12 +66,12 @@ def get_local_ip() -> str:
 async def lifespan(app: FastAPI):
     # Initialize telemetry
     init_telemetry()
-    # Initialize pybullet simulation
-    simulation_init()
-    # Initialize cameras
-    cameras = get_all_cameras()
-    rcm = get_rcm()
     udp_server = get_udp_server()
+    # Initialize pybullet simulation
+    sim = get_sim()
+    sim.init_simulation()
+    # Initialize rcm
+    rcm = get_rcm()
 
     try:
         login_to_hf()
@@ -85,9 +85,7 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         udp_server.stop()
-        if cameras:
-            cameras.stop()
-            logger.info("Cameras stopped")
+
         from phosphobot.endpoints.control import (
             ai_control_signal,
             gravity_control,
@@ -104,9 +102,13 @@ async def lifespan(app: FastAPI):
             leader_follower_control.stop()
             logger.info("Leader follower control signal stopped")
 
+        cameras = get_all_cameras_no_init()
+        if cameras:
+            cameras.stop()
+
         # Cleanup the simulation environment
         del rcm
-        simulation_stop()
+        del sim
         sentry_sdk.flush(timeout=1)
         posthog.shutdown()
 
