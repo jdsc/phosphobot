@@ -4,7 +4,6 @@ from functools import lru_cache
 from typing import Any, List, Set
 
 from async_property import async_property
-import pybullet as p  # type: ignore
 from fastapi import HTTPException
 from loguru import logger
 from serial.tools import list_ports
@@ -20,6 +19,7 @@ from phosphobot.hardware import (
     UnitreeGo2,
     WX250SHardware,
     RemotePhosphobot,
+    get_sim,
 )
 from phosphobot.models import RobotConfigStatus
 from phosphobot.utils import is_can_plugged
@@ -128,7 +128,8 @@ class RobotConnectionManager:
         Use self.scan_ports() before to update self.available_ports and self.available_can_ports
         """
 
-        p.resetSimulation()
+        sim = get_sim()
+        sim.reset()
         self._all_robots = []
 
         # If we are only simulating, we can just use the SO100Hardware class

@@ -21,7 +21,6 @@ router = APIRouter(tags=["camera"])
     response_class=StreamingResponse,
     description="Stream video feed of the specified camera. "
     + "If no camera id is provided, the default camera is used. "
-    + "If the camera id is 'realsense' or 'depth', the realsense camera is used."
     + "Specify a target size and quality using query parameters.",
     responses={
         200: {"description": "Streaming video feed of the specified camera."},
@@ -30,7 +29,7 @@ router = APIRouter(tags=["camera"])
 )
 def video_feed_for_camera(
     request: Request,
-    camera_id: int | str | None,
+    camera_id: int | None,
     height: int | None = None,
     width: int | None = None,
     quality: int | None = None,
@@ -40,7 +39,7 @@ def video_feed_for_camera(
     Stream video feed of the specified camera.
 
     Parameters:
-    - camera_id (int | str | None): ID of the camera to stream. If None, the default camera is used.
+    - camera_id (int | None): ID of the camera to stream. If None, the default camera is used.
     - target_size (tuple[int, int] | None): Target size of the video feed. Default is None.
     - quality (int | None): Quality of the video feed. Default is None.
     """
@@ -76,41 +75,16 @@ def video_feed_for_camera(
         "quality": quality,
     }
 
-    if isinstance(camera_id, int):
-        camera = cameras.get_camera_by_id(camera_id)
-        if camera is None or not camera.is_active:
-            raise HTTPException(status_code=404, detail="Camera not available")
-        logger.info(f"Starting video feed with params {stream_params}")
-        return StreamingResponse(
-            camera.generate_rgb_frames(
-                target_size=target_size, quality=quality, request=request
-            ),
-            media_type="multipart/x-mixed-replace; boundary=frame",
-        )
-
-    elif isinstance(camera_id, str):
-        """
-        Stream video feed from realsense camera.
-        """
-        if camera_id not in ["realsense", "depth"]:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Camera {camera_id} not implemented. Use an integer or 'realsense' or 'depth'.",
-            )
-        # camera is always None at this point so we can safely ignore the type check
-        camera = cameras.get_realsense_camera()  # type: ignore
-        if camera is None:
-            raise HTTPException(status_code=404, detail="Camera not available")
-        logger.info(f"Starting video feed with params {stream_params}")
-        return StreamingResponse(
-            camera.generate_rgb_frames(
-                is_video_frame=(camera_id == "realsense"),
-                target_size=target_size,
-                quality=quality,
-                request=request,
-            ),
-            media_type="multipart/x-mixed-replace; boundary=frame",
-        )
+    camera = cameras.get_camera_by_id(camera_id)
+    if camera is None or not camera.is_active:
+        raise HTTPException(status_code=404, detail="Camera not available")
+    logger.info(f"Starting video feed with params {stream_params}")
+    return StreamingResponse(
+        camera.generate_rgb_frames(
+            target_size=target_size, quality=quality, request=request
+        ),
+        media_type="multipart/x-mixed-replace; boundary=frame",
+    )
 
 
 @router.get(
@@ -178,3 +152,22 @@ async def get_all_camera_frames(
         raise HTTPException(status_code=503, detail="No camera frames available")
 
     return response
+
+
+@router.post(
+    "/cameras/refresh",
+    response_model=dict,
+    description="Refresh the list of available cameras. "
+    + "This operation can take a few seconds as it disconnects and reconnects to all cameras. "
+    + "It is useful when cameras are added or removed while the application is running.",
+)
+async def refresh_camera_list(
+    cameras: AllCameras = Depends(get_all_cameras),
+):
+    """
+    Refresh the list of available cameras.
+    This operation can take a few seconds as it disconnects and reconnects to all cameras.
+    It is useful when cameras are added or removed while the application is running.
+    """
+    cameras.refresh()
+    return {"message": "Camera list refreshed successfully"}

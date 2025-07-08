@@ -1,6 +1,6 @@
-# phosphobot
+# Control AI robots with phospho
 
-**phosphobot** is a community-driven platform that enables you to train and use VLA (vision language action models) to control real robots.
+**phospho** (or **phosphobot**) is a software that lets you control robots, record data, train and use VLA (vision language action models).
 
 <div align="center">
 
@@ -10,7 +10,7 @@
 
 </div>
 
-## Overview
+## Overview of phospho
 
 - 🕹️ Control your robot with the keyboard, a leader arm, a Meta Quest headset or via API
 - 📹 Teleoperate robots to record datasets in LeRobot dataset format
@@ -20,7 +20,7 @@
 - 🦾 Compatible with the SO-100, SO-101, WX-250 and AgileX Piper
 - 🔧 Extend it with your own robots and cameras
 
-## Getting started
+## Getting started with phosphobot
 
 ### 1. Get a SO-100 robot
 
@@ -36,7 +36,14 @@ phosphobot run
 # Upgrade it with brew or with apt
 # sudo apt update && sudo apt install phosphobot
 # brew update && brew upgrade phosphobot
+# powershell -ExecutionPolicy ByPass -Command "irm https://raw.githubusercontent.com/phospho-app/phosphobot/main/install.ps1 | iex"
 ```
+
+This will:
+
+- on mac: use brew to install phosphobot
+- on linux: install phosphobot through apt
+- on windows: install a .exe
 
 ### 3. Make your robot move for the first time!
 
@@ -47,6 +54,8 @@ You will be able to control your robot with:
 - the keyboard
 - a leader arm
 - a Meta Quest if you have the phospho teleop app
+
+> _Note: port 80 might already be in use, if that's the case, the server will spin up on localhost:8080_
 
 ### 4. Record a dataset
 
@@ -141,7 +150,11 @@ curl -X 'GET' 'http://localhost/status' -H 'accept: application/json'
 
 ## Contributing
 
-We welcome contributions! Some of the ways you can contribute:
+We welcome contributions!
+
+Also checkout our [bounty program](https://docs.google.com/spreadsheets/d/1NKyKoYbNcCMQpTzxbNJeoKWucPzJ5ULJkuiop4Av8ZQ/edit?gid=0#gid=0).
+
+Here are some of the ways you can contribute:
 
 - Add support for new AI models
 - Add support for new teleoperation controllers

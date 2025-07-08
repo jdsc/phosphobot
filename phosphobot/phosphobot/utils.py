@@ -35,6 +35,8 @@ from phosphobot.types import VideoCodecs
 # Disable pyav logs
 av.logging.set_level(None)
 
+ALLOWED_TO_RUN_SCAPY = True
+
 
 def is_running_on_pi() -> bool:
     """Validate that we're running on a Raspberry Pi"""
@@ -49,21 +51,6 @@ def is_running_on_pi() -> bool:
 def is_running_on_linux() -> bool:
     """Validate that we're running on a Linux machine"""
     return os.name == "posix"
-
-
-def step_simulation(steps=960):
-    """
-    When running the simulation in headless mode,
-    Pybullet forces us to step the simulation manually.
-
-    The sim runs at 240 Hz, so we need to step it 240 times per second.
-    """
-    import pybullet as p  # type: ignore
-
-    # When running the simulation in headless mode,
-    # Pybullet forces us to step the simulation manually
-    for _ in range(steps):
-        p.stepSimulation()
 
 
 def euler_from_quaternion(quaternion: np.ndarray, degrees: bool) -> np.ndarray:
@@ -862,6 +849,7 @@ async def scan_network_devices(
     Uses ARP requests to detect devices on the network. Requires root for fast scan.
     Falls back to slow scan with ping/ARP table parsing if not root.
     """
+    global ALLOWED_TO_RUN_SCAPY
 
     async def fast_arp_scan() -> list[NetworkDevice]:
         """Perform async fast ARP scan using scapy in a thread"""
@@ -987,13 +975,18 @@ async def scan_network_devices(
             return []
 
     try:
-        return await fast_arp_scan()
+        if ALLOWED_TO_RUN_SCAPY:
+            return await fast_arp_scan()
+        else:
+            # use the slow scan
+            return await slow_arp_scan()
     except PermissionError:
-        logger.warning(
-            "Permission denied for fast scan. Use sudo for faster results.\n"
-            "Falling back to slow scan..."
+        logger.debug(
+            "Permission denied for fast IP scan (use sudo for faster results). Using slow scan..."
         )
+        ALLOWED_TO_RUN_SCAPY = False
         return await slow_arp_scan()
     except Exception as e:
         logger.warning(f"Fast scan failed: {e}. Falling back to slow scan...")
+        ALLOWED_TO_RUN_SCAPY = False
         return await slow_arp_scan()

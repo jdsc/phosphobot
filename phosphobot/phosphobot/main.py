@@ -297,7 +297,6 @@ def run(
         try:
             # Update config with current port
             config.PORT = current_port
-            logger.info(f"Attempting to start server on port {current_port}")
 
             uvicorn.run(
                 "phosphobot.app:app",

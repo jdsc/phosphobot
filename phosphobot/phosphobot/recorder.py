@@ -284,8 +284,6 @@ class Recorder:
                     (target_size[1], target_size[0], 3), dtype=np.uint8
                 )
 
-            depth_frame = self.cameras.get_depth_frame()  # Optional
-
             # --- Robot Observation (largely unchanged) ---
             # Consolidate observations if multiple robots are present
             all_robot_states = []
@@ -339,10 +337,7 @@ class Recorder:
             step = Step(
                 observation=observation,
                 action=None,  # Will be filled by update_previous_step for the *previous* step
-                metadata={
-                    "created_at": loop_iteration_start_time,
-                    "depth_frame": depth_frame,
-                },
+                metadata={"created_at": loop_iteration_start_time},
             )
 
             if step_count % 20 == 0:  # Log every 20 steps

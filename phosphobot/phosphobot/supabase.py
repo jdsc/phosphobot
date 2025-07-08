@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from gotrue.errors import AuthRetryableError
 from loguru import logger
 from supabase import AsyncClient, acreate_client
+from gotrue.types import Session as GotrueSession
 
 from phosphobot.models import Session
 from phosphobot.utils import get_home_app_path, get_tokens
@@ -105,7 +106,12 @@ async def get_client() -> AsyncClient:
                 )
                 if success:
                     new_supabase_session = await client.auth.get_session()
-                    if new_supabase_session:
+                    if new_supabase_session is not None:
+                        if new_supabase_session.user.email is None:
+                            raise HTTPException(
+                                status_code=401, detail="User email not found"
+                            )
+
                         updated_session = Session(
                             user_id=new_supabase_session.user.id,
                             user_email=new_supabase_session.user.email,
@@ -141,12 +147,12 @@ async def get_client() -> AsyncClient:
     return client
 
 
-async def user_is_logged_in() -> Session:
+async def user_is_logged_in() -> GotrueSession:
     """
     Check if the user is logged in. If not, raise HTTPException with status code 401.
     """
     client = await get_client()
-    session: Session | None = await client.auth.get_session()
+    session = await client.auth.get_session()
     if session is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return session

@@ -263,7 +263,6 @@ async def move_to_absolute_position(
                 if num_trials > 0:
                     await asyncio.sleep(0.03 + 0.2 / (num_trials + 1))
 
-                logger.debug(f"Trial {num_trials + 1}")
                 num_trials += 1
                 await robot.move_robot_absolute(
                     target_position=target_position,
@@ -1023,9 +1022,9 @@ async def spawn_inference_server(
             )
             robots_to_control.remove(robot)
 
-    assert all(
-        isinstance(robot, BaseManipulator) for robot in robots_to_control
-    ), "All robots must be manipulators for AI control"
+    assert all(isinstance(robot, BaseManipulator) for robot in robots_to_control), (
+        "All robots must be manipulators for AI control"
+    )
 
     # Get the modal host and port here
     _, _, server_info = await setup_ai_control(
@@ -1070,6 +1069,8 @@ async def start_auto_control(
 
     supabase_client = await get_client()
     user = await supabase_client.auth.get_user()
+    if user is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     await (
         supabase_client.table("ai_control_sessions")
         .upsert(
@@ -1100,9 +1101,9 @@ async def start_auto_control(
             )
             robots_to_control.remove(robot)
 
-    assert all(
-        isinstance(robot, BaseManipulator) for robot in robots_to_control
-    ), "All robots must be manipulators for AI control"
+    assert all(isinstance(robot, BaseManipulator) for robot in robots_to_control), (
+        "All robots must be manipulators for AI control"
+    )
 
     # Get the modal host and port here
     model, model_spawn_config, server_info = await setup_ai_control(
@@ -1112,6 +1113,7 @@ async def start_auto_control(
         model_id=query.model_id,
         cameras_keys_mapping=query.cameras_keys_mapping,
         ai_control_signal_id=ai_control_signal.id,
+        verify_cameras=query.verify_cameras,
     )
 
     # Add a flag: successful setup

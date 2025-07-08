@@ -11,7 +11,7 @@ from phosphobot.utils import get_home_app_path, get_tokens
 
 tokens = get_tokens()
 posthog = Posthog(
-    project_api_key=tokens.POSTHOG_API_KEY,
+    project_api_key=tokens.POSTHOG_API_KEY or "",
     host=tokens.POSTHOG_HOST,
 )
 posthog_details = {
@@ -85,7 +85,9 @@ def add_email_to_posthog(email: str | None) -> None:
     if posthog.disabled or not email:
         return
 
-    posthog.identify(
-        distinct_id=user_id,
-        properties={"$set": {"email": email}},
-    )
+    global posthog_details
+
+    posthog_details = {
+        **posthog_details,
+        "$email": email,
+    }
