@@ -121,7 +121,7 @@ def load_policy(model_id: str, revision: str | None = None):
 
         # Set up device
         device = get_safe_torch_device(
-            device_str="mps", log=True
+            device_str="cuda", log=True
         )  # "mps" on mac / "cuda" if you have a GPU / "cpu" otherwise
         torch.backends.cudnn.benchmark = True
         torch.backends.cuda.matmul.allow_tf32 = True
@@ -185,7 +185,7 @@ def process_image(
                     if image.shape[:2] != target_size:
                         image = cv2.resize(image, target_size)
                     tensor_image = (
-                        torch.from_numpy(image)
+                        torch.from_numpy(image.copy())
                         .permute(2, 0, 1)
                         .unsqueeze(0)
                         .float()
@@ -227,10 +227,6 @@ async def inference(request: InferenceRequest) -> str | None:
         target_size: tuple[int, int] = (224, 224)
 
         # Get feature names
-        # print("Input features:", input_features) #
-#Input features: {'observation.state': {'type': 'STATE', 'shape': [6]}, 'observation.images.main': {'type': 'VISUAL', 'shape': [3, 240, 320]}, 'observation.images.secondary_0': {'type': 'VISUAL', 'shape': [3, 240, 320]}}
-        # print(payload["observation.images.1"][0]) #カメラに手をかざすと値がかわる
-
         image_names = [
             feature for feature in input_features.keys() if "image" in feature
         ]
@@ -261,7 +257,7 @@ async def inference(request: InferenceRequest) -> str | None:
         )
 
         # Encode response using json_numpy
-        response = json_numpy.dumps(actions[0])
+        response = json_numpy.dumps(actions) #actions[0]
         return response
 
     except Exception as e:

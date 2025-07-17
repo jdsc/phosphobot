@@ -36,14 +36,14 @@ def check_v2(info_path):
     with open(info_path, "r") as f:
         try:
             info = json.load(f)
-            if "codebase_version" not in info:
-                print(f"Error: {info_path} is not a valid v2.0 dataset")
-                sys.exit(1)
-            elif info["codebase_version"] != "v2.0":
-                print(
-                    f"Error: {info_path} is not a v2.0 dataset, found {info['codebase_version']}"
-                )
-                sys.exit(1)
+            # if "codebase_version" not in info:
+            #     print(f"Error: {info_path} is not a valid v2.0 dataset")
+            #     sys.exit(1)
+            # elif info["codebase_version"] != "v2.0":
+            #     print(
+            #         f"Error: {info_path} is not a v2.0 dataset, found {info['codebase_version']}"
+            #     )
+            #     sys.exit(1)
         except json.JSONDecodeError:
             print(f"Error: {info_path} is not a valid JSON file")
             sys.exit(1)
