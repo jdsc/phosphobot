@@ -48,6 +48,8 @@ dependencies = [
     "netifaces-plus>=0.12.0",
     "wasmtime>=33.0.0",
     "async-property>=0.2.2",
+    "torch>=2.7.0",
+    "lerobot"
 ]
 
 [dependency-groups]
@@ -77,7 +79,7 @@ default-groups = ["dev"]
 # because we had the error unknow host: github.com
 openpi-client = { git = "https://github.com/phospho-app/openpi.git", subdirectory = "packages/openpi-client", rev = "main" }
 # go2-webrtc-connect = { path = "../../go2_webrtc_connect", editable = true }
-
+lerobot = { git = "https://github.com/phospho-app/lerobot" }
 
 [project.scripts]
 phosphobot = "phosphobot.main:cli"
