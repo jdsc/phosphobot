@@ -30,7 +30,6 @@ if host == "YOUR_SERVER_IP":
     )
 
 while True:
-    start_time = time.perf_counter()
     images = [
         allcameras.get_rgb_frame(camera_id=0, resize=(224, 224)), # GR00Tは224,224
         allcameras.get_rgb_frame(camera_id=1, resize=(224, 224)),
@@ -68,6 +67,7 @@ while True:
     actions = model.sample_actions(obs)
 
     for action in actions: 
+        start_time = time.perf_counter()
         payload = {
             "angles": action.tolist(), 
             "unit": "rad", 
