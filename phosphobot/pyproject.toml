@@ -28,7 +28,7 @@ dependencies = [
     "typer>=0.15.1",
     "websockets>=14.1",
     "huggingface-hub>=0.28.0",
-    "datasets>=3.2.0",
+    "datasets==3.2.0",
     "sentry-sdk[fastapi]>=2.20.0",
     "posthog>=6.0.0",
     "piper-sdk>=0.1.16",
